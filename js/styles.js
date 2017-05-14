@@ -1,7 +1,11 @@
 const {StyleSheet} = require('react-native');
 
 export const constants = {
-  actionColor: '#4db8ff'
+  addActionColor: '#4db8ff',
+  openActionColor: '#ffffff',
+  delActionColor: '#4db8ff',
+  editActionColor: '#4db8ff',
+  editTitleColor: '#4db8ff',
 };
 
 export const styles = StyleSheet.create({
@@ -17,6 +21,8 @@ export const styles = StyleSheet.create({
         borderBottomColor: '#eeeeee',
         borderColor: 'transparent',
         borderWidth: 1,
+    },
+    liTitle: {
         flexDirection: 'row',
     },
     liContainer: {
@@ -64,7 +70,9 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
         justifyContent: 'center',
         height: 44,
-        flexDirection: 'row'
+        flexDirection: 'row',
+        paddingTop: 2,
+        paddingBottom: 5,
     },
     navbarTitle: {
         color: '#444444',
@@ -84,11 +92,20 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
     },
     action: {
-        backgroundColor: constants.actionColor,
+        backgroundColor: constants.addActionColor,
         borderColor: 'transparent',
         borderWidth: 1,
         paddingLeft: 16,
         paddingTop: 14,
         paddingBottom: 16,
-    }
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        padding: 20,
+    },
+    modalInnerContainer: {
+    borderRadius: 10,
+    alignItems: 'center',
+  },
 });

@@ -4,6 +4,7 @@ import {
     AppRegistry,
     ListView,
     StyleSheet,
+    Modal,
     Text,
     View,
     TouchableHighlight,
@@ -14,6 +15,8 @@ const { constants, styles } = require('./js/styles.js')
 const { StatusBar } = require('./js/StatusBar.js');
 const { ActionButton } = require('./js/ActionButton.js');
 const { ListItem } = require('./js/ListItem.js');
+const { ExpandedListItem } = require('./js/ExpandedListItem.js');
+const { PopupForm } = require('./js/Modal.js');
 
 // Initialize Firebase
 var config = {
@@ -36,6 +39,13 @@ class ReactNativeTest extends Component {
         };
         this.fireRef = this.getRef().child('items');
         this.itemLength = 0
+        this.title = "To Do List"
+    }
+
+    state = {
+        expandedIndex: -1,
+        currentItem: {},
+        visible: false,
     }
 
     getRef() {
@@ -45,41 +55,99 @@ class ReactNativeTest extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <StatusBar title="To Do List"/>
-                <ListView dataSource={this.state.dataSource} renderRow={this._renderItem.bind(this)} enableEmptySections={true} style={styles.listview}/>
-                <ActionButton title="Add" onPress={this._addItem.bind(this)}/>
+                <StatusBar
+                    title={this.title}
+                    onPress={this._changeTitle.bind(this)}
+                />
+                <ListView
+                    dataSource={this.state.dataSource}
+                    renderRow={this._renderItem.bind(this)}
+                    enableEmptySections={true}
+                    style={styles.listview}
+                />
+                <ActionButton
+                    title="Add"
+                    onPress={this._addItem.bind(this)}
+                />
+                <PopupForm
+                    data={this.state.currentItem}
+                    visible={this.state.visible}
+                />
             </View>
         );
     }
 
     _renderItem(item) {
-        const onPress = () => {
+        const delPress = () => {
             AlertIOS.alert(
-                'Complete',
+                'Delete?',
                 null,
                 [
-                    {text: 'Complete', onPress: (text) => this.fireRef.child(item._key).remove()},
-                    {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
+                    {
+                        text: 'Complete',
+                        onPress: (text) => this.fireRef.child(item._key).remove()
+                    },
+                    {
+                        text: 'Cancel'
+                    }
                 ]
             );
         };
-        return (
-            <ListItem item={item} onPress={onPress} />
-        );
+        const expandPress = () => {
+            item.expanded = true
+        }
+        console.log(this.state.dataSource);
+        console.log(this.state.expandedIndex);
+        if ( item._key != this.state.expandedIndex ) {
+            return (
+                <ListItem item={item}
+                    delPress={delPress}
+                    editPress={() => {this.state.visible = true}}
+                    expandPress = {() => {this.state.expandedIndex = item._key; this.forceUpdate()}}
+                />
+            );
+        }
+        else {
+            return (
+                <ExpandedListItem
+                    item={item}
+                    delPress={delPress}
+                    editPress={() => {this.state.visible = true}}
+                    shrinkPress = {() => {this.state.expandedIndex = -1; this.forceUpdate()}}
+                />
+            );
+        }
     }
 
     _addItem() {
-        console.log('Add Item')
         AlertIOS.prompt(
             'Add New Item',
             null,
             [
                 {
                     text: 'Add',
-                    onPress: (text) => {this.fireRef.push({ title: text, order: this.itemLength })}
+                    onPress: (text) => { if (text != "") {this.fireRef.push({ title: text, order: this.itemLength })} }
                 },
             ],
-            'plain-text'
+            'plain-text',
+        );
+    }
+
+    _changeTitle() {
+        AlertIOS.prompt(
+            'Add New Item',
+            null,
+            [
+                {
+                    text: 'Change',
+                    onPress: (text) => { this.title = text; this.forceUpdate() }
+                },
+                {
+                    text: 'Cancel'
+                }
+            ],
+            'plain-text',
+            this.title
         );
     }
 
@@ -92,7 +160,8 @@ class ReactNativeTest extends Component {
             snap.forEach((child) => {
                 items.push({
                     title: child.val().title,
-                    _key: child.key
+                    _key: child.key,
+                    order: child.val().order,
                 });
                 this.itemLength ++
             });
