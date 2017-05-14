@@ -10,7 +10,7 @@ export class ActionButton extends Component {
                 <TouchableHighlight
                     onPress={this.props.onPress}
                     underlayColor={constants.addActionColor}
-                >
+                    >
                     <Text style={styles.actionText}>{this.props.title}</Text>
                 </TouchableHighlight>
 

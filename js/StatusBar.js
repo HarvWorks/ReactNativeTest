@@ -12,12 +12,12 @@ export class StatusBar extends Component {
                 <TouchableHighlight
                     onPress={this.props.onPress}
                     underlayColor={constants.delActionColor}
-                >
+                    >
                     <View style={styles.navbar}>
                         <Text style={styles.navbarTitle}>{this.props.title}</Text>
                     </View>
                 </TouchableHighlight>
-                
+
             </View>
         );
     }

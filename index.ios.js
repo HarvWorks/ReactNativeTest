@@ -29,23 +29,31 @@ var config = {
 };
 const fireBaseApp = firebase.initializeApp(config);
 
+Date.prototype.yyyymmdd = function() {
+  var mm = this.getMonth() + 1; // getMonth() is zero-based
+  var dd = this.getDate();
+
+  return [this.getFullYear(), (mm>9 ? '' : '0') + mm, (dd>9 ? '' : '0') + dd].join('-');
+};
+
 class ReactNativeTest extends Component {
     constructor(props) {
         super(props);
+        const date = new Date();
         this.state = {
             dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
-            })
+            }),
+            fireRef: this.getRef().child('items'),
+            itemLength: 0,
+            title: "To Do List",
+            expandedIndex: -1,
+            modalVisible: false,
+            currentTitle: "",
+            currentDesc: "",
+            currentDate: date.yyyymmdd(),
+            currentPriority: 0,
         };
-        this.fireRef = this.getRef().child('items');
-        this.itemLength = 0
-        this.title = "To Do List"
-    }
-
-    state = {
-        expandedIndex: -1,
-        currentItem: {},
-        visible: false,
     }
 
     getRef() {
@@ -55,8 +63,15 @@ class ReactNativeTest extends Component {
     render() {
         return (
             <View style={styles.container}>
+                <PopupForm
+                    item={{title:this.state.currentTitle, desc:this.state.currentDesc, date:this.state.currentDate, priority:this.state.currentPriority}}
+                    visible={this.state.modalVisible}
+                    cancel={() => {this.state.modalVisible = false; this.forceUpdate()}}
+                    confirm = {this._addItem.bind(this)}
+                    update = {this.updateState.bind(this)}
+                />
                 <StatusBar
-                    title={this.title}
+                    title={this.state.title}
                     onPress={this._changeTitle.bind(this)}
                 />
                 <ListView
@@ -67,11 +82,7 @@ class ReactNativeTest extends Component {
                 />
                 <ActionButton
                     title="Add"
-                    onPress={this._addItem.bind(this)}
-                />
-                <PopupForm
-                    data={this.state.currentItem}
-                    visible={this.state.visible}
+                    onPress={this._addItemPrompt.bind(this)}
                 />
             </View>
         );
@@ -85,7 +96,7 @@ class ReactNativeTest extends Component {
                 [
                     {
                         text: 'Complete',
-                        onPress: (text) => this.fireRef.child(item._key).remove()
+                        onPress: (text) => this.state.fireRef.child(item._key).remove()
                     },
                     {
                         text: 'Cancel'
@@ -96,15 +107,16 @@ class ReactNativeTest extends Component {
         const expandPress = () => {
             item.expanded = true
         }
-        console.log(this.state.dataSource);
-        console.log(this.state.expandedIndex);
         if ( item._key != this.state.expandedIndex ) {
             return (
-                <ListItem item={item}
-                    delPress={delPress}
-                    editPress={() => {this.state.visible = true}}
-                    expandPress = {() => {this.state.expandedIndex = item._key; this.forceUpdate()}}
-                />
+                <View style={styles.li}>
+                    <ListItem
+                        item={item}
+                        delPress={delPress}
+                        editPress={() => {this.editPress(item)}}
+                        expandPress = {() => {this.state.expandedIndex = item._key; this.forceUpdate()}}
+                    />
+                </View>
             );
         }
         else {
@@ -112,58 +124,82 @@ class ReactNativeTest extends Component {
                 <ExpandedListItem
                     item={item}
                     delPress={delPress}
-                    editPress={() => {this.state.visible = true}}
+                    editPress={() => {this.editPress(item)}}
                     shrinkPress = {() => {this.state.expandedIndex = -1; this.forceUpdate()}}
                 />
             );
         }
     }
 
-    _addItem() {
-        AlertIOS.prompt(
-            'Add New Item',
-            null,
-            [
-                {
-                    text: 'Add',
-                    onPress: (text) => { if (text != "") {this.fireRef.push({ title: text, order: this.itemLength })} }
-                },
-            ],
-            'plain-text',
-        );
+    _addItemPrompt() {
+        const date = new Date()
+        this.state.modalVisible = true;
+        this.state.currentTitle = "";
+        this.state.currentDesc = "";
+        this.state.currentDate = date.yyyymmdd();
+        this.state.currentPriority = 0;
+        this.forceUpdate()
+    }
+
+    _addItem(item) {
+        if (item.title != "") {
+            this.state.fireRef.push({
+                title: item.title,
+                desc: item.desc,
+                date: item.date,
+                priority: item.priority,
+            });
+            this.state.modalVisible = false;
+            this.forceUpdate()
+        }
     }
 
     _changeTitle() {
         AlertIOS.prompt(
-            'Add New Item',
+            'Change Title',
             null,
             [
                 {
                     text: 'Change',
-                    onPress: (text) => { this.title = text; this.forceUpdate() }
+                    onPress: (text) => { this.state.title = text; this.forceUpdate() }
                 },
                 {
                     text: 'Cancel'
                 }
             ],
             'plain-text',
-            this.title
+            this.state.title
         );
+    }
+
+    editPress(item) {
+        this.state.modalVisible = true;
+        this.state.currentTitle = item.title;
+        this.state.currentDesc = item.desc;
+        this.state.currentDate = item.date;
+        this.state.currentPriority = item.priority;
+        this.forceUpdate()
+    }
+
+    updateState(currentState) {
+        this.setState (currentState);
     }
 
     listenForItems(itemRef) {
         itemRef.on('value', (snap) => {
 
-            this.itemLength = 0
+            this.state.itemLength = 0
             // get children as an array
             var items = [];
             snap.forEach((child) => {
                 items.push({
-                    title: child.val().title,
                     _key: child.key,
-                    order: child.val().order,
+                    title: child.val().title,
+                    desc: child.val().desc,
+                    date: child.val().date,
+                    priority: child.val().priority,
                 });
-                this.itemLength ++
+                this.state.itemLength ++
             });
 
             this.setState({
@@ -173,7 +209,7 @@ class ReactNativeTest extends Component {
     }
 
     componentDidMount() {
-        this.listenForItems(this.fireRef);
+        this.listenForItems(this.state.fireRef);
     }
 }
 

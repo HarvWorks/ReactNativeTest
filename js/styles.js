@@ -54,6 +54,14 @@ export const styles = StyleSheet.create({
         marginTop: 7,
         marginBottom: 7,
     },
+    expandedTextBox: {
+        paddingTop: 5,
+        paddingBottom: 5,
+    },
+    expandedText: {
+        paddingLeft: 16,
+        paddingBottom: 10,
+    },
     editText: {
         color: '#0099ff',
         fontSize: 14,
@@ -103,9 +111,34 @@ export const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         padding: 20,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
     },
     modalInnerContainer: {
-    borderRadius: 10,
-    alignItems: 'center',
-  },
+        borderRadius: 15,
+        backgroundColor: '#f9f9f9',
+        padding: 20,
+    },
+    textInput: {
+        backgroundColor: '#ffffff',
+        borderColor: '#6f8f9f',
+        borderWidth: 0.5,
+        paddingLeft: 7,
+        paddingRight: 5,
+    },
+    popupTitle: {
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    popupDesc: {
+        fontSize: 14,
+        fontWeight: "400",
+        paddingTop: 16,
+        paddingBottom: 8,
+    },
+    closeButton: {
+        paddingTop: 10,
+    },
+    centerStuff: {
+        alignItems: 'center',
+    }
 });
