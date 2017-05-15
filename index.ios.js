@@ -45,7 +45,6 @@ class ReactNativeTest extends Component {
                 rowHasChanged: (row1, row2) => row1 !== row2,
             }),
             fireRef: this.getRef().child('items'),
-            itemLength: 0,
             title: "To Do List",
             expandedIndex: -1,
             modalVisible: false,
@@ -53,6 +52,8 @@ class ReactNativeTest extends Component {
             currentDesc: "",
             currentDate: date.yyyymmdd(),
             currentPriority: 0,
+            currentKey:'',
+            isUpdate: 'New Item',
         };
     }
 
@@ -64,11 +65,12 @@ class ReactNativeTest extends Component {
         return (
             <View style={styles.container}>
                 <PopupForm
-                    item={{title:this.state.currentTitle, desc:this.state.currentDesc, date:this.state.currentDate, priority:this.state.currentPriority}}
+                    item={{title:this.state.currentTitle, desc:this.state.currentDesc, date:this.state.currentDate, priority:this.state.currentPriority, key:this.state.currentKey}}
                     visible={this.state.modalVisible}
                     cancel={() => {this.state.modalVisible = false; this.forceUpdate()}}
                     confirm = {this._addItem.bind(this)}
                     update = {this.updateState.bind(this)}
+                    title = {this.state.isUpdate}
                 />
                 <StatusBar
                     title={this.state.title}
@@ -82,7 +84,7 @@ class ReactNativeTest extends Component {
                 />
                 <ActionButton
                     title="Add"
-                    onPress={this._addItemPrompt.bind(this)}
+                    onPress={this.addItemPrompt.bind(this)}
                 />
             </View>
         );
@@ -113,7 +115,7 @@ class ReactNativeTest extends Component {
                     <ListItem
                         item={item}
                         delPress={delPress}
-                        editPress={() => {this.editPress(item)}}
+                        editPress={() => {this.editItemPrompt(item)}}
                         expandPress = {() => {this.state.expandedIndex = item._key; this.forceUpdate()}}
                     />
                 </View>
@@ -124,31 +126,52 @@ class ReactNativeTest extends Component {
                 <ExpandedListItem
                     item={item}
                     delPress={delPress}
-                    editPress={() => {this.editPress(item)}}
+                    editPress={() => {this.editItemPrompt(item)}}
                     shrinkPress = {() => {this.state.expandedIndex = -1; this.forceUpdate()}}
                 />
             );
         }
     }
 
-    _addItemPrompt() {
+    addItemPrompt() {
         const date = new Date()
         this.state.modalVisible = true;
-        this.state.currentTitle = "";
-        this.state.currentDesc = "";
+        this.state.currentTitle = '';
+        this.state.currentDesc = '';
         this.state.currentDate = date.yyyymmdd();
         this.state.currentPriority = 0;
+        this.state.currentKey = ''
+        this.state.isUpdate = 'New Item';
+        this.forceUpdate()
+    }
+
+    editItemPrompt(item) {
+        this.state.modalVisible = true;
+        this.state.currentTitle = item.title;
+        this.state.currentDesc = item.desc;
+        this.state.currentDate = item.date;
+        this.state.currentPriority = item.priority;
+        this.state.currentKey = item._key;
+        this.state.isUpdate = 'Edit Item';
         this.forceUpdate()
     }
 
     _addItem(item) {
         if (item.title != "") {
-            this.state.fireRef.push({
+            const temp = {
                 title: item.title,
                 desc: item.desc,
                 date: item.date,
                 priority: item.priority,
-            });
+            }
+            if(this.state.isUpdate == 'New Item') {
+                this.state.fireRef.push(temp);
+            }
+            else {
+                const insert = {};
+                insert[item.key] = temp
+                this.state.fireRef.update(insert);
+            }
             this.state.modalVisible = false;
             this.forceUpdate()
         }
@@ -172,15 +195,6 @@ class ReactNativeTest extends Component {
         );
     }
 
-    editPress(item) {
-        this.state.modalVisible = true;
-        this.state.currentTitle = item.title;
-        this.state.currentDesc = item.desc;
-        this.state.currentDate = item.date;
-        this.state.currentPriority = item.priority;
-        this.forceUpdate()
-    }
-
     updateState(currentState) {
         this.setState (currentState);
     }
@@ -188,9 +202,7 @@ class ReactNativeTest extends Component {
     listenForItems(itemRef) {
         itemRef.on('value', (snap) => {
 
-            this.state.itemLength = 0
-            // get children as an array
-            var items = [];
+            const items = [];
             snap.forEach((child) => {
                 items.push({
                     _key: child.key,
@@ -199,7 +211,6 @@ class ReactNativeTest extends Component {
                     date: child.val().date,
                     priority: child.val().priority,
                 });
-                this.state.itemLength ++
             });
 
             this.setState({

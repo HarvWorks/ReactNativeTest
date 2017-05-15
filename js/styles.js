@@ -6,6 +6,23 @@ export const constants = {
   delActionColor: '#4db8ff',
   editActionColor: '#4db8ff',
   editTitleColor: '#4db8ff',
+  datePickerStyles: {
+      dateIcon: {
+          height: 30,
+          width: 30,
+          position: 'absolute',
+          left: 0,
+          top: 4,
+          marginLeft: 0
+      },
+      dateInput: {
+          borderColor: '#6f8f9f',
+          borderWidth: 0.5,
+          height: 35,
+          marginLeft: 34,
+          backgroundColor: '#ffffff'
+      },
+  },
 };
 
 export const styles = StyleSheet.create({
@@ -116,7 +133,6 @@ export const styles = StyleSheet.create({
     modalInnerContainer: {
         borderRadius: 15,
         backgroundColor: '#f9f9f9',
-        padding: 20,
     },
     textInput: {
         backgroundColor: '#ffffff',
@@ -124,8 +140,11 @@ export const styles = StyleSheet.create({
         borderWidth: 0.5,
         paddingLeft: 7,
         paddingRight: 5,
+        marginLeft: 20,
+        marginRight: 20,
     },
     popupTitle: {
+        marginTop: 20,
         fontSize: 16,
         fontWeight: "600",
     },
@@ -134,9 +153,30 @@ export const styles = StyleSheet.create({
         fontWeight: "400",
         paddingTop: 16,
         paddingBottom: 8,
+        marginLeft: 20,
     },
-    closeButton: {
+    datePickerContainer: {
+        alignItems:'flex-end',
+        padding: 10,
+        paddingRight: 20,
+        marginRight: 20,
+        marginTop: 2,
+    },
+    popupButtons: {
+        marginTop: 5,
+        borderTopColor: '#dbdbdf',
+        borderTopWidth: 0.5,
+        flexDirection: 'row',
+    },
+    popupButton: {
         paddingTop: 10,
+        flex: 0.5,
+        alignItems: 'center',
+        paddingBottom: 10,
+    },
+    popupButtonText: {
+        fontSize: 17,
+        color: '#007aff',
     },
     centerStuff: {
         alignItems: 'center',

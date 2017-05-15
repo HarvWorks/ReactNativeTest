@@ -8,7 +8,7 @@ export class StatusBar extends Component {
             <View>
 
                 <View style={styles.statusbar}/>
-
+                
                 <TouchableHighlight
                     onPress={this.props.onPress}
                     underlayColor={constants.delActionColor}
